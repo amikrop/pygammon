@@ -47,9 +47,10 @@ class TestRun(unittest.TestCase):
         expected_move_call_count: int = 1,
         expected_extra_send_output_args: Optional[Tuple[Any, ...]] = None,
         winning_side: Side = Side.FIRST,
+        move_by_turn_rolls: bool = False,
     ) -> None:
         send_output = Mock()
-        run(self.receive_input, send_output)
+        run(self.receive_input, send_output, move_by_turn_rolls)
 
         self.assertEqual(mock_choice.call_count, 2)
         allowed_rolls_first = mock_choice.call_args_list[0].args[0]
@@ -78,6 +79,8 @@ class TestRun(unittest.TestCase):
         ]
         if expected_extra_send_output_args is not None:
             expected_send_output_args_list.insert(2, expected_extra_send_output_args)
+        if move_by_turn_rolls:
+            del expected_send_output_args_list[1]
         self.assertEqual(send_output.call_count, len(expected_send_output_args_list))
         for call, expected_args in zip(
             send_output.call_args_list, expected_send_output_args_list
@@ -295,4 +298,47 @@ class TestRun(unittest.TestCase):
             mock_choice,
             expected_send_state_call_count=4,
             expected_move_call_count=2,
+        )
+
+    def test_invalid_input_type(
+        self,
+        mock_move: Mock,
+        mock_get_max_move_count: Mock,
+        mock_roll_dice: Mock,
+        mock_send_state: Mock,
+        mock_choice: Mock,
+    ) -> None:
+        self.receive_input.side_effect = (8, 2), (
+            InputType.MOVE,
+            self.example_move,
+        )
+        self.check_calls(
+            mock_move,
+            mock_get_max_move_count,
+            mock_roll_dice,
+            mock_send_state,
+            mock_choice,
+            expected_extra_send_output_args=(
+                OutputType.INVALID_MOVE,
+                InvalidMoveCode.INVALID_INPUT_TYPE,
+                Side.FIRST,
+            ),
+        )
+
+    def test_move_by_turn_rolls(
+        self,
+        mock_move: Mock,
+        mock_get_max_move_count: Mock,
+        mock_roll_dice: Mock,
+        mock_send_state: Mock,
+        mock_choice: Mock,
+    ) -> None:
+        self.check_calls(
+            mock_move,
+            mock_get_max_move_count,
+            mock_roll_dice,
+            mock_send_state,
+            mock_choice,
+            expected_roll_dice_call_count=0,
+            move_by_turn_rolls=True,
         )

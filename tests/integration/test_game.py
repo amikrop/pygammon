@@ -1,11 +1,11 @@
 import unittest
 from copy import deepcopy
-from pathlib import Path
 from typing import Set, Tuple, cast
 
 from pygammon.core import Game
 from pygammon.exceptions import MaxMovesFound
 from pygammon.structures import Point, Side
+from tests.integration.helpers import read_fixture
 
 
 def read_game(fixture_index: int) -> Game:
@@ -14,8 +14,7 @@ def read_game(fixture_index: int) -> Game:
         return cast(Tuple[int, int], tuple(map_object))
 
     game = Game(Side.FIRST)
-    fixture_path = Path(__file__).parent / f"fixtures/{fixture_index}"
-    contents = fixture_path.read_text().splitlines()
+    contents = read_fixture(f"game/{fixture_index}")
     first_row = contents[0].split()
     second_row = reversed(contents[1].split())
 

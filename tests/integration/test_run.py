@@ -1,6 +1,5 @@
 import unittest
 from copy import deepcopy
-from pathlib import Path
 from typing import Any, List, Optional, Tuple, Union, cast
 from unittest.mock import Mock, call, patch
 
@@ -16,6 +15,7 @@ from pygammon.structures import (
     Side,
     StartingCount,
 )
+from tests.integration.helpers import read_fixture
 
 
 class CopyingMock(Mock):
@@ -23,10 +23,12 @@ class CopyingMock(Mock):
         return cast(CopyingMock, super().__call__(*deepcopy(args), **deepcopy(kwargs)))
 
 
+@patch("pygammon.core.choice")
+@patch("pygammon.core.randint")
 class TestRun(unittest.TestCase):
-    @patch("pygammon.core.choice")
-    @patch("pygammon.core.randint")
-    def test_run(self, mock_randint: Mock, mock_choice: Mock) -> None:
+    def check_run(
+        self, mock_randint: Mock, mock_choice: Mock, move_by_turn_rolls: bool
+    ) -> None:
         board = [Point() for _ in range(BOARD_SIZE)]
         board[0] = Point(Side.SECOND, StartingCount.LOW)
         board[5] = Point(Side.FIRST, StartingCount.HIGH)
@@ -50,8 +52,9 @@ class TestRun(unittest.TestCase):
         randint_results: List[int] = []
         receive_input_results = []
 
-        fixture_path = Path(__file__).parent / "fixtures/game"
-        contents = fixture_path.read_text().splitlines()
+        initial_filename = "turn-rolls" if move_by_turn_rolls else "default"
+        initial_contents = read_fixture(f"run/{initial_filename}")
+        contents = initial_contents + read_fixture("run/common")
         for line in filter(None, contents):
             if line[0] == "c":
                 choice_results.extend(int(roll) for roll in line[2:].split())
@@ -59,9 +62,14 @@ class TestRun(unittest.TestCase):
                 randint_results.extend(int(roll) for roll in line[2:].split())
             elif line[0] == "i":
                 parts = line[2:].split()
-                results: List[Optional[Union[InputType, Tuple[int, Optional[int]]]]] = [
-                    InputType(int(parts[0]))
-                ]
+                input_value = int(parts[0])
+                try:
+                    input_type: Union[InputType, int] = InputType(input_value)
+                except ValueError:
+                    input_type = input_value
+                results: List[
+                    Optional[Union[Union[InputType, int], Tuple[int, Optional[int]]]]
+                ] = [input_type]
                 if len(parts) == 2:
                     results.append(None)
                 else:
@@ -120,8 +128,16 @@ class TestRun(unittest.TestCase):
         mock = CopyingMock()
         mock.receive_input = CopyingMock(side_effect=receive_input_results)
 
-        run(mock.receive_input, mock.send_output)
+        run(mock.receive_input, mock.send_output, move_by_turn_rolls)
 
         self.assertEqual(mock.mock_calls, expected_calls)
         self.assertEqual(mock_choice.call_count, len(choice_results))
         self.assertEqual(mock_randint.call_count, len(randint_results))
+
+    def test_run(self, mock_randint: Mock, mock_choice: Mock) -> None:
+        self.check_run(mock_randint, mock_choice, False)
+
+    def test_run_move_by_turn_rolls(
+        self, mock_randint: Mock, mock_choice: Mock
+    ) -> None:
+        self.check_run(mock_randint, mock_choice, True)

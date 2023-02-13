@@ -54,6 +54,7 @@ class InvalidMoveCode(Enum):
     DESTINATION_OCCUPIED = 4
     INVALID_MOVE_TYPE = 5
     NOTHING_TO_UNDO = 6
+    INVALID_INPUT_TYPE = 7
 
 
 class InputType(Enum):

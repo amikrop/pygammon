@@ -17,7 +17,7 @@ It should return a 2-tuple of:
         - an ``int`` (or ``None`` under circumstances)
 
 The latter takes an :class:`~pygammon.OutputType` as its first argument, indicating the output's purpose.
-Its second argument is the data, which can be a :class:`~pygammon.GameState`, a tuple of 2 ``int``s,
+Its second argument is the data, which can be a :class:`~pygammon.GameState`, a tuple of 2 ``int``\s,
 an :class:`~pygammon.InvalidMoveCode`, or a :class:`~pygammon.Side`. It can optionally take a third argument,
 a :class:`~pygammon.Side`, indicating which side the output is addressed to. If the third argument is ommited
 (should have a ``None`` default value), the output concerns both sides.
@@ -30,6 +30,9 @@ a :class:`~pygammon.Side`, indicating which side the output is addressed to. If 
 
     - The dice are rolled and both sides get informed by `send_output` with: the :attr:`OutputType.MOVE_ROLLS <pygammon.OutputType.MOVE_ROLLS>`
       constant, and a :class:`~pygammon.structures.DieRolls` instance.
+
+      .. note::
+         If :func:`~pygammon.run` was called with `move_by_turn_rolls` set to ``True``, the above step will be skipped for the first iteration.
     - Then, until a valid move is made, or game is won:
 
         - `receive_input` is called with the currently playing :class:`~pygammon.Side`.
@@ -49,13 +52,16 @@ a :class:`~pygammon.Side`, indicating which side the output is addressed to. If 
                     - Else, if all the moves have been made for this turn, `send_output` sends :attr:`OutputType.GAME_STATE
                       <pygammon.OutputType.GAME_STATE>`, and a :class:`~pygammon.GameState` instance, and the other side starts their turn.
 
-        - Else (the first item should be :attr:`InputType.UNDO <pygammon.InputType.UNDO>`):
+        - Else, if the first item is :attr:`InputType.UNDO <pygammon.InputType.UNDO>`:
 
             - If the second item is not ``None``, `send_output` sends :attr:`OutputType.INVALID_MOVE <pygammon.OutputType.INVALID_MOVE>`,
               :attr:`InvalidMoveCode.INVALID_MOVE_TYPE <pygammon.InvalidMoveCode.INVALID_MOVE_TYPE>`, and the current :class:`~pygammon.Side`.
             - Else, if there are no moves to undo, `send_output` sends :attr:`OutputType.INVALID_MOVE <pygammon.OutputType.INVALID_MOVE>`,
               :attr:`InvalidMoveCode.NOTHING_TO_UNDO <pygammon.InvalidMoveCode.NOTHING_TO_UNDO>`, and the current :class:`~pygammon.Side`.
             - Else, the last move is undone.
+
+        - Else, `send_output` sends :attr:`OutputType.INVALID_MOVE <pygammon.OutputType.INVALID_MOVE>`,
+          :attr:`InvalidMoveCode.INVALID_INPUT_TYPE <pygammon.InvalidMoveCode.INVALID_INPUT_TYPE>`, and the current :class:`~pygammon.Side`.
 
 .. _moving:
 

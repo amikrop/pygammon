@@ -223,6 +223,7 @@ def run(
         [Side], Tuple[InputType, Optional[Tuple[int, Optional[int]]]]
     ],
     send_output: SendOutputCallable,
+    move_by_turn_rolls: bool = False,
 ) -> None:
     """Start a game, using given callables for player input and output.
 
@@ -244,9 +245,13 @@ def run(
     send_output(OutputType.TURN_ROLLS, DieRolls(first_roll, second_roll))
 
     while True:
-        game.roll_dice()
-        rolls = game.dice[:2]
-        send_output(OutputType.MOVE_ROLLS, DieRolls(*rolls))
+        if move_by_turn_rolls:
+            game.dice = first_roll, second_roll
+            move_by_turn_rolls = False
+        else:
+            game.roll_dice()
+            rolls = game.dice[:2]
+            send_output(OutputType.MOVE_ROLLS, DieRolls(*rolls))
 
         game_states = []
         move_count = 0
@@ -281,7 +286,7 @@ def run(
                     move_count += 1
                     game.send_state(send_output)
 
-            else:
+            elif input_type is InputType.UNDO:
                 if move is not None:
                     send_output(
                         OutputType.INVALID_MOVE,
@@ -293,7 +298,6 @@ def run(
                 # Try to undo
                 try:
                     game = game_states.pop()
-                    game.send_state(send_output)
                 except IndexError:
                     send_output(
                         OutputType.INVALID_MOVE,
@@ -302,6 +306,14 @@ def run(
                     )
                 else:
                     move_count -= 1
+                    game.send_state(send_output)
+
+            else:
+                send_output(  # type: ignore[unreachable]
+                    OutputType.INVALID_MOVE,
+                    InvalidMoveCode.INVALID_INPUT_TYPE,
+                    game.side,
+                )
 
         game.side = Side(not game.side)
         game.dice_played = set()
