@@ -31,14 +31,11 @@ and a function for informing each side about the game state and events (output):
 .. code-block:: python
 
    from typing import Optional, Tuple, Union
-
    from pygammon import GameState, InputType, InvalidMoveCode, OutputType, Side, run
-
 
    def receive_input(side: Side) -> Tuple[InputType, Optional[Tuple[int, Optional[int]]]]:
        # Return move of given side
        ...
-
 
    def send_output(
        output_type: OutputType,
@@ -47,7 +44,6 @@ and a function for informing each side about the game state and events (output):
    ) -> None:
        # Show output to given side
        ...
-
 
    run(receive_input, send_output)
 
