@@ -230,6 +230,8 @@ def run(
     Args:
         receive_input: Callable receiving player input
         send_output: Callable sending player output
+        move_by_turn_rolls: Whether the starting player should move by the turn-deciding
+            die rolls, on their first turn
     """
     allowed_rolls = list(range(1, DIE_FACE_COUNT + 1))
 
