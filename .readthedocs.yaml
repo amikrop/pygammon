@@ -7,4 +7,4 @@ build:
 
 python:
   install:
-    - package: sphinx-rtd-theme
+    - packages: sphinx-rtd-theme
