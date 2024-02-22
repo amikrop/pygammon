@@ -6,5 +6,4 @@ build:
     python: "3.8"
 
 python:
-  install:
-    - sphinx_rtd_theme
+  install: sphinx_rtd_theme
