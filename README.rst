@@ -20,10 +20,6 @@ Backgammon engine core
    :target: https://codecov.io/gh/amikrop/pygammon
    :alt: Coverage
 
-.. image:: https://img.shields.io/circleci/build/github/amikrop/pygammon
-   :target: https://dl.circleci.com/status-badge/redirect/gh/amikrop/pygammon/tree/main
-   :alt: CircleCI
-
 .. image:: https://readthedocs.org/projects/pygammon/badge/?version=latest
     :target: https://pygammon.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
